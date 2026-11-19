@@ -1,16 +1,24 @@
 import { useEffect } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Lenis from 'lenis'
 import { Navbar } from './components/Navbar'
 import { InteractiveHero } from './components/InteractiveHero'
 import { Sections } from './components/Sections'
 import { Footer } from './components/Footer'
+import { CinematicLoader } from './components/CinematicLoader'
+import { CustomCursor } from './components/CustomCursor'
 
 gsap.registerPlugin(ScrollTrigger)
 
 export default function App() {
   useEffect(() => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+    const lenis = new Lenis({ autoRaf: false, smoothWheel: true, lerp: .085 })
+    const updateScroll = (time: number) => lenis.raf(time * 1000)
+    lenis.on('scroll', () => ScrollTrigger.update())
+    gsap.ticker.add(updateScroll)
+    gsap.ticker.lagSmoothing(0)
     const context = gsap.context(() => {
       gsap.utils.toArray<HTMLElement>('[data-reveal]').forEach(element => {
         gsap.fromTo(element, { y: 28, autoAlpha: 0 }, {
@@ -18,12 +26,12 @@ export default function App() {
           scrollTrigger: { trigger: element, start: 'top 88%', once: true },
         })
       })
-      gsap.utils.toArray<HTMLElement>('.skill-meter i').forEach((meter, index) => gsap.fromTo(meter, { scaleX: 0 }, {
-        scaleX: 1, duration: .9, delay: index * .12, transformOrigin: 'left center', ease: 'power2.out',
+      gsap.utils.toArray<HTMLElement>('.skill-meter').forEach((meter, index) => gsap.fromTo(meter, { scale: .55, autoAlpha: 0 }, {
+        scale: 1, autoAlpha: 1, duration: 1.05, delay: index * .12, transformOrigin: 'center', ease: 'power2.out',
         scrollTrigger: { trigger: meter, start: 'top 90%', once: true },
       }))
     })
-    return () => context.revert()
+    return () => { context.revert(); gsap.ticker.remove(updateScroll); lenis.destroy() }
   }, [])
 
   useEffect(() => {
@@ -46,5 +54,5 @@ export default function App() {
     return () => buttons.forEach(button => { button.removeEventListener('pointermove', move); button.removeEventListener('pointerleave', reset) })
   }, [])
 
-  return <><Navbar/><main><InteractiveHero/><Sections/></main><Footer/></>
+  return <><CinematicLoader/><Navbar/><main><InteractiveHero/><Sections/></main><Footer/><CustomCursor/></>
 }

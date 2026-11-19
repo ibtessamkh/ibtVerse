@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react'
 import { siteContent } from '../content'
-import { allFrameNumbers, framePath, heroFrames, type HeroState } from '../heroFrames'
+import { Atmosphere } from './Atmosphere'
+import { allFrameNumbers, heroFrames, loadedFrames, preloadHeroFrames, type HeroState } from '../heroFrames'
 
 export function InteractiveHero() {
   const stageRef = useRef<HTMLElement>(null)
@@ -79,7 +80,7 @@ export function InteractiveHero() {
     playState('greeting', () => {
       greetingRunningRef.current = false
       setMessage(siteContent.hero.messages.greeting[2])
-      if (!pointerInsideRef.current) greetingLockedRef.current = false
+      if (!pointerInsideRef.current) { greetingLockedRef.current = false; setZone('') }
     })
     const lines = siteContent.hero.messages.greeting
     window.setTimeout(() => setMessage(lines[1]), 1100)
@@ -121,23 +122,17 @@ export function InteractiveHero() {
     const observer = new MutationObserver(onTheme)
     observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] })
     let cancelled = false
-    const preload = async () => {
-      const idle = allFrameNumbers.filter(number => number >= heroFrames.idle.start && number <= heroFrames.idle.end)
-      const remaining = allFrameNumbers.filter(number => !idle.includes(number))
-      for (const number of [...idle, ...remaining]) {
-        const image = new Image()
-        image.decoding = 'async'
-        const ready = new Promise<void>(resolve => { image.onload = () => resolve(); image.onerror = () => resolve() })
-        image.src = framePath(number)
-        await ready
-        if (cancelled) return
-        imagesRef.current.set(number, image)
-        setLoaded(imagesRef.current.size)
-        if (number === heroFrames.idle.start) drawFrame(number)
-      }
+    imagesRef.current = new Map(loadedFrames)
+    setLoaded(loadedFrames.size)
+    if (loadedFrames.has(heroFrames.idle.start)) drawFrame(heroFrames.idle.start)
+    void preloadHeroFrames(count => {
+      if (cancelled) return
+      imagesRef.current = new Map(loadedFrames)
+      setLoaded(count)
+      if (count === 1) drawFrame(heroFrames.idle.start)
+    }).then(() => {
       if (!cancelled) { frameRef.current = heroFrames.idle.start; drawFrame(frameRef.current) }
-    }
-    void preload()
+    })
     const resize = () => drawFrame(frameRef.current)
     window.addEventListener('resize', resize)
     return () => {
@@ -166,15 +161,15 @@ export function InteractiveHero() {
     }
   }
   const progress = Math.min(100, Math.round((loaded / allFrameNumbers.length) * 100))
-  return <section id="top" ref={stageRef} className={`hero-section theme-${theme}`} onPointerMove={selectZone} onPointerEnter={() => { pointerInsideRef.current = true }} onPointerLeave={() => { pointerInsideRef.current = false; onLeave() }}>
-    <div className="hero-glow" aria-hidden="true"/><div className="hero-grain" aria-hidden="true"/>
+  return <section id="top" ref={stageRef} className={`hero-section theme-${theme}`} data-contact={zone === 'center'} onPointerMove={selectZone} onPointerEnter={() => { pointerInsideRef.current = true }} onPointerLeave={() => { pointerInsideRef.current = false; onLeave() }}>
+    <Atmosphere/><div className="hero-glow" aria-hidden="true"/><div className="hero-grain" aria-hidden="true"/><span className="hero-beam beam-one" aria-hidden="true"/><span className="hero-beam beam-two" aria-hidden="true"/>
     <div className="hero-copy-left"><span className="overline"><i/> {siteContent.labels.attribution}</span><h1>{siteContent.hero.name.split(' ')[0]}<br/><em>{siteContent.hero.name.split(' ').slice(1).join(' ')}</em></h1><p className="hero-role">{siteContent.hero.role}</p><button className="call-instruction" type="button" onClick={greet}><span className="cursor-spark" aria-hidden="true">↖</span>{isMobile ? siteContent.labels.tapInstruction : siteContent.hero.instruction}</button></div>
     <div className="hero-art" aria-label={siteContent.labels.heroAria} role="button" tabIndex={0} onClick={() => { if (isMobile && !greetingRunningRef.current) greetingLockedRef.current = false; if (isMobile || !greetingLockedRef.current) greet() }} onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); greet() } }}>
-      <div className="portrait-aura" aria-hidden="true"/><canvas ref={canvasRef} className="hero-canvas" aria-label={siteContent.labels.canvasAria}/><span className="frame-placeholder">{siteContent.hero.placeholder}</span>
+      <div className="portrait-aura" aria-hidden="true"/><div className="hero-floor-reflection" aria-hidden="true"/><div className="hud-lock" aria-hidden="true"><i/><i/><i/><i/></div><canvas ref={canvasRef} className="hero-canvas" aria-label={siteContent.labels.canvasAria}/><span className="frame-placeholder">{siteContent.hero.placeholder}</span>
       {loaded < allFrameNumbers.length && <div className="frame-loader" role="status"><span>{siteContent.hero.loading}</span><div><i style={{ width: `${progress}%` }}/></div></div>}
-      <div className="hero-caption"><span>{siteContent.labels.caption[0]}</span><i>×</i><span>{siteContent.labels.caption[1]}</span></div>
+      <div className="hero-hud-top"><span>{siteContent.hero.hud.system}</span><span>{siteContent.hero.hud.scan}</span></div><div className="hero-hud-bottom"><span>{siteContent.hero.hud.location}</span><span>{siteContent.hero.hud.timecode}</span></div><div className="hero-caption"><span>{siteContent.labels.caption[0]}</span><i>×</i><span>{siteContent.labels.caption[1]}</span></div>
     </div>
-    <aside className="hero-side-message"><div key={message} className="hero-zone-message" aria-live="polite" aria-atomic="true">{message}</div></aside>
+    <aside className="hero-side-message"><span className="contact-status"><i/>{zone === 'center' ? siteContent.hero.statusContact : siteContent.hero.statusIdle}</span><div key={message} className="hero-zone-message" aria-live="polite" aria-atomic="true">{message}</div></aside>
     <div className="hero-scroll"><span>{siteContent.hero.scroll}</span><a href="#about" aria-label={siteContent.labels.scrollAria}>↓</a></div>
     <span className={`zone-indicator ${zone}`} aria-hidden="true"/>
   </section>

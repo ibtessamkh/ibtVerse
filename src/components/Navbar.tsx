@@ -5,7 +5,7 @@ import { MapleMark } from './MapleMark'
 export function Navbar() {
   const [open, setOpen] = useState(false)
   const [active, setActive] = useState('#top')
-  const [dark, setDark] = useState(() => { try { return localStorage.getItem('ibtverse-theme') === 'dark' } catch { return false } })
+  const [dark, setDark] = useState(() => { try { return localStorage.getItem('ibtverse-theme') !== 'light' } catch { return true } })
 
   useEffect(() => {
     document.documentElement.dataset.theme = dark ? 'dark' : 'light'
@@ -28,7 +28,7 @@ export function Navbar() {
     <button className="menu-toggle" type="button" aria-expanded={open} aria-controls="nav-links" onClick={() => setOpen(!open)} onKeyDown={event => { if (event.key === 'Escape') setOpen(false) }}><span className="sr-only">{open ? siteContent.labels.menuClose : siteContent.labels.menuOpen}</span><i/><i/></button>
     <div className={`nav-links ${open ? 'is-open' : ''}`} id="nav-links">
       {siteContent.nav.map(item => <a key={item.href} className={active === item.href ? 'is-active' : ''} href={item.href} onClick={() => setOpen(false)}>{item.label}</a>)}
-      <button className="theme-toggle" type="button" aria-label={`Switch to ${dark ? siteContent.labels.themeLight : siteContent.labels.themeDark} theme`} aria-pressed={dark} onClick={() => setDark(!dark)}>{dark ? '☼' : '☾'}<span>{dark ? 'Light' : 'Dark'}</span></button>
+      <button className="theme-toggle" type="button" aria-label={`${siteContent.labels.themeSwitch} ${dark ? siteContent.labels.themeLight : siteContent.labels.themeDark} theme`} aria-pressed={dark} onClick={() => setDark(!dark)}>{dark ? '☼' : '☾'}<span>{dark ? siteContent.labels.themeLabelLight : siteContent.labels.themeLabelDark}</span></button>
     </div>
   </nav></header>
 }
