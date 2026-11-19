@@ -45,11 +45,29 @@
   const portraitStage = document.querySelector('.home-portrait');
   const reactionMessage = portraitStage?.querySelector('.hero-reaction');
   if (portraitStage && reactionMessage) {
-    const baseMessage = window.matchMedia('(max-width: 680px)').matches
-      ? 'Tap the portrait to say hello'
-      : 'Move your cursor to say hello';
+    const isMobile = window.matchMedia('(max-width: 680px)');
+    const baseMessage = () => isMobile.matches ? 'Tap the portrait to say hello' : 'Move cursor to call me!';
+    reactionMessage.textContent = baseMessage();
+    const instructionCopy = portraitStage.querySelector('.instruction-copy');
+    if (instructionCopy) instructionCopy.textContent = isMobile.matches ? 'Tap to say hello' : 'Move cursor to call me!';
     let activeZone = '';
     let reactionTimers = [];
+    let lookX = 0;
+    let targetLookX = 0;
+    let lookFrame = 0;
+    const portraitFrame = portraitStage.querySelector('.portrait-frame');
+    const animateLook = () => {
+      lookX += (targetLookX - lookX) * 0.12;
+      if (Math.abs(targetLookX - lookX) < 0.1) lookX = targetLookX;
+      portraitFrame?.style.setProperty('--look-x', `${lookX.toFixed(2)}px`);
+      if (lookX !== targetLookX) lookFrame = requestAnimationFrame(animateLook);
+      else lookFrame = 0;
+    };
+    const moveLook = zone => {
+      targetLookX = zone === 'left' ? -7 : zone === 'right' ? 7 : 0;
+      if (!lookFrame && !reduceMotion) lookFrame = requestAnimationFrame(animateLook);
+      else if (reduceMotion) portraitFrame?.style.setProperty('--look-x', `${targetLookX}px`);
+    };
     const clearReactionTimers = () => {
       reactionTimers.forEach(timer => window.clearTimeout(timer));
       reactionTimers = [];
@@ -59,6 +77,7 @@
       activeZone = zone;
       clearReactionTimers();
       portraitStage.dataset.reaction = zone || 'idle';
+      moveLook(zone);
       if (zone === 'left') {
         reactionMessage.textContent = 'Anyone here on the left?';
         reactionTimers.push(window.setTimeout(() => setReaction(''), 2600));
@@ -68,13 +87,13 @@
       } else if (zone === 'center') {
         reactionMessage.textContent = "Hey, it's you!";
         reactionTimers.push(window.setTimeout(() => { reactionMessage.textContent = 'Hiiii!'; }, 950));
-        reactionTimers.push(window.setTimeout(() => { reactionMessage.textContent = 'Explore my portfolio'; }, 1900));
+        reactionTimers.push(window.setTimeout(() => { reactionMessage.textContent = 'Check out the portfolio'; }, 1900));
       } else {
-        reactionMessage.textContent = baseMessage;
+        reactionMessage.textContent = baseMessage();
       }
     };
     portraitStage.addEventListener('pointermove', event => {
-      if (event.pointerType === 'touch' || window.matchMedia('(max-width: 680px)').matches) return;
+      if (event.pointerType === 'touch' || isMobile.matches) return;
       const bounds = portraitStage.getBoundingClientRect();
       const progress = (event.clientX - bounds.left) / bounds.width;
       setReaction(progress < 1 / 3 ? 'left' : progress > 2 / 3 ? 'right' : 'center');
