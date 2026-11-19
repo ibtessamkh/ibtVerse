@@ -1,95 +1,55 @@
 # ibtVerse
 
-An English-language academic portfolio for Khobizi Ibtessam, built with semantic HTML, CSS and vanilla JavaScript. It runs without a build step or server. The contact form uses the visitor's email application as a fallback; no message is stored on a server.
+An English academic portfolio for Khobizi Ibtessam, built with React, TypeScript, Vite, Tailwind CSS, and GSAP ScrollTrigger.
 
-## Run locally
+## File structure
 
-Open `index.html` in a browser, or serve the folder with `python3 -m http.server 8000` and visit `http://localhost:8000`.
+```text
+src/
+  App.tsx
+  content.ts              # Site copy and replaceable profile links
+  heroFrames.ts           # Editable animation state ranges
+  components/              # Navbar, hero, portfolio sections, footer
+  styles.css
+public/
+  frames/                  # Numbered WebP frames for the hero
+  cv/                      # Add the reviewed CV PDF here when available
+```
 
-## Update your content
+The original HTML pages and reusable TSX experiments are retained in the repository; Vite serves the React portfolio from the root `index.html`.
 
-- Replace `assets/photo.jpg` with your portrait, keeping the same filename. The original `photo.jpg` is also kept at the project root.
-- Add document scans to `assets/docs/` using the filenames already referenced in the gallery: `technoformat-cybersecurity.jpg`, `language-attestation.jpg`, `baccalaureate-2024.jpg`, `internship-attestation.jpg`, `veterinary-diploma.jpg`, and `master-attestation.jpg`.
-- In `index.html`, replace the `#` placeholders for GitHub and TryHackMe (LinkedIn is already set), and replace the `#` links in the CyberShield AI project with its live demo and repository URLs.
-- The contact address is `khobiziibtessam@gmail.com`; change it in `index.html` and `js/script.js` if needed.
+## Install and run
 
-Document scans are presented only as thumbnails and lightbox previews. Keep personal identifiers and dates of birth out of the page text and redact them from scans before publishing. The site notes that original documents are available on request.
+```sh
+npm install
+npm run dev
+```
+
+## Build and preview
+
+```sh
+npm run build
+npm run preview
+```
+
+Vite writes the static production site to `dist/`.
+
+## Hero animation assets
+
+The current numbered files in `public/frames/` are clearly marked photo placeholders made from the existing portrait. They let the canvas renderer, loading indicator, state timing, desktop interaction zones, mobile greeting, and reduced-motion path run while the character animation is being prepared. They do not contain the headset, laptop, look, wave, or pointing poses.
+
+Replace `frame_0001.webp` through `frame_0032.webp` with optimized frames exported from the final animation. Edit the `idle`, `lookLeft`, `lookRight`, and `greeting` ranges and frame rates in `src/heroFrames.ts` to match. Keep dimensions and aspect ratio consistent. The idle range loops; left/right reactions hold briefly then return to idle; greeting remains on its last frame until the visitor replays it.
+
+## Replace placeholders
+
+- Update profile copy and project information in `src/content.ts`.
+- Replace empty GitHub and CyberShield AI URLs in that file when the links are ready. The existing LinkedIn link is already configured.
+- Add a privacy-reviewed CV PDF under `public/cv/` before exposing a download link. The site currently says “CV available on request”.
+- Replace the WebP frame placeholders described above when the animated character frames are ready.
+
+The contact form opens the visitor’s email application using `khobiziibtessam@gmail.com`; it does not send or store messages on a server.
 
 ## Deploy
 
-- **GitHub Pages:** push this folder to a repository and enable Pages for the publishing branch.
-- **Netlify:** deploy the folder directly or connect its repository. No build command is required.
-
-## React liquid-glass navbar (optional)
-
-The portfolio itself is still plain HTML/CSS/JavaScript, so it does not execute `.tsx` files. The component source is at `src/components/ui/liquid-glass-navbar.tsx`; it has no icon or animation package dependency (the icons and styles are included). Use it from a React app as `@/components/ui/liquid-glass-navbar`.
-
-### Set up a separate Vite + React + TypeScript app
-
-Keep the static portfolio intact and create the React app in its own folder:
-
-```sh
-npm create vite@latest react-app -- --template react-ts
-mkdir -p react-app/src/components/ui
-cp src/components/ui/liquid-glass-navbar.tsx src/components/ui/doodle-crew-footer.tsx react-app/src/components/ui/
-cd react-app
-npm install
-npm install tailwindcss @tailwindcss/vite
-npm install -D @types/node
-npx shadcn@latest init
-```
-
-In `react-app/src/index.css`, use Tailwind v4's import:
-
-```css
-@import "tailwindcss";
-```
-
-Add `baseUrl` and the `@/*` path to both `react-app/tsconfig.json` and `react-app/tsconfig.app.json` (the Vite template splits TypeScript settings):
-
-```json
-{
-  "compilerOptions": {
-    "baseUrl": ".",
-    "paths": { "@/*": ["./src/*"] }
-  }
-}
-```
-
-Update `react-app/vite.config.ts` to include Tailwind and the same alias:
-
-```ts
-import path from "path"
-import tailwindcss from "@tailwindcss/vite"
-import react from "@vitejs/plugin-react"
-import { defineConfig } from "vite"
-
-export default defineConfig({
-  plugins: [react(), tailwindcss()],
-  resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
-})
-```
-
-Use it from a React component with your portfolio's section anchors:
-
-```tsx
-import { LiquidNavbar, NimbusIcons } from "@/components/ui/liquid-glass-navbar"
-
-<LiquidNavbar items={[
-  { label: "Home", href: "#top", icon: NimbusIcons.home, fx: "glow" },
-  { label: "About", href: "#about", icon: NimbusIcons.user, fx: "wave" },
-  { label: "Experience", href: "#experience", icon: NimbusIcons.globe, fx: "spin" },
-  { label: "Projects", href: "#projects", icon: NimbusIcons.plane, fx: "plane" },
-  { label: "Contact", href: "#contact", icon: NimbusIcons.drop, fx: "drop" },
-]} />
-```
-
-The Vite + shadcn convention resolves `@/components/ui/...` to `src/components/ui/...`; the stylesheet entry point is `src/index.css`. Keeping reusable UI components in that folder makes the alias predictable for imports, the shadcn CLI, and future UI additions. `lucide-react` is not needed because this component exports its own small inline SVG icons. Then run `npm run dev` from `react-app`.
-
-References: [shadcn Vite installation](https://ui.shadcn.com/docs/installation/vite), [shadcn components.json aliases](https://ui.shadcn.com/docs/components-json), [Vite guide](https://vite.dev/guide/).
-
-
-The sketchbook-style footer is also available at `src/components/ui/doodle-crew-footer.tsx`, with an Ibtessam-specific example in `src/components/ui/demo.tsx`. To use it in the optional React app, copy those files into `react-app/src/components/ui/`, then render `<Demo />` from the app page or place `<DoodleCrewFooter />` at the bottom of your layout. It has no icon library, image, font download, or other runtime dependency. `preset="auto"` follows `--color-background` and `--color-foreground`; the static portfolio defines these tokens for both light and dark themes.
-
-The current HTML site keeps its own footer and dark-mode toggle; TSX components require the optional React app to run. The theme button saves the selected light/dark setting in local storage.
-# my-first-project
+- **Vercel / Netlify:** import the repository, set the build command to `npm run build`, and the output directory to `dist`.
+- **GitHub Pages:** run the build and publish `dist/` with Pages or a deployment workflow. If the site is hosted under a repository subpath, configure Vite’s `base` option in `vite.config.ts` for that path before building.
