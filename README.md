@@ -21,9 +21,12 @@ The original HTML pages and reusable TSX experiments are retained in the reposit
 ## Install and run
 
 ```sh
+cd ~/Desktop/ibtVerse
 npm install
 npm run dev
 ```
+
+Then open `http://localhost:5173` in your browser. Do not double-click `index.html`; Vite must serve the React modules. The HTML includes a short launch note if it is opened directly.
 
 ## Build and preview
 

@@ -16,7 +16,22 @@
     <title>ibtVerse — Khobizi Ibtessam</title>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <main class="startup-note">
+        <span>ibtVerse · LOCAL PREVIEW</span>
+        <h1>Start the portfolio</h1>
+        <p>This React site needs the Vite development server. In this folder, run <code>npm run dev</code>, then open <code>http://localhost:5173</code>.</p>
+        <p class="startup-help">Opening <code>index.html</code> directly will not start the app.</p>
+      </main>
+    </div>
+    <style>
+      .startup-note{box-sizing:border-box;min-height:100vh;display:grid;align-content:center;justify-items:start;gap:14px;padding:36px max(8vw,24px);background:#0b0b0f;color:#f5efed;font:15px/1.7 'DM Sans',Arial,sans-serif}
+      .startup-note span{color:#e8b4bc;font:500 10px 'JetBrains Mono',monospace;letter-spacing:.18em}
+      .startup-note h1{margin:8px 0;font:500 clamp(42px,8vw,76px)/1.05 'Cormorant Garamond',Georgia,serif}
+      .startup-note p{max-width:620px;color:#c7babb}
+      .startup-note code{padding:3px 6px;border:1px solid #ffffff24;border-radius:3px;background:#ffffff08;color:#f2c7cf;font:12px 'JetBrains Mono',monospace}
+      .startup-note .startup-help{color:#918588;font-size:12px}
+    </style>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
